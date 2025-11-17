@@ -2,21 +2,11 @@
 
 function tool1() {
     // FamilySearch Filter Tool
-// This script filters search results to show only records with possible tree matches
-
 (function() {
   // Check if we're on a FamilySearch search record page
   if (!location.href.includes("familysearch.org/en/search/record/")) {
     console.warn("⚠️ FamilySearch Filter works best on search record pages");
   }
-
-  /**
-   * Hides table rows that don't contain matching indicators
-   * Looks for:
-   * - Elements with color style "var(--gray00a)"
-   * - Text containing "View possible tree matches."
-   * - aria-label attributes containing "View possible tree matches."
-   */
   function hideChunksThatDontMatch() {
     // Get all table body elements on the page
     const tbodies = document.getElementsByTagName("tbody");
@@ -73,6 +63,29 @@ function tool2() {
 }
 
 function tool3() {
-    alert("Tool 3 is working!");
-    // another tool's code
+// FamilySearch Auto Find Tool
+(async function() {
+  try {
+    // Read text from the clipboard
+    const clipboardText = await navigator.clipboard.readText();
+    
+    // Check if clipboard has content
+    if (!clipboardText) {
+      alert("Clipboard is empty!");
+      return;
+    }
+    
+    // Navigate to the person's FamilySearch profile page
+    // Trims whitespace and encodes the ID for URL safety
+    const personId = clipboardText.trim();
+    const profileUrl = "https://www.familysearch.org/en/tree/person/details/" + encodeURIComponent(personId);
+    
+    window.location.href = profileUrl;
+    
+  } catch (error) {
+    // Handle errors (usually permission denied)
+    alert("Unable to read clipboard. Please allow clipboard permissions.");
+    console.error(error);
+  }
+})();
 }
