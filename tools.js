@@ -121,6 +121,13 @@ function tool2() {
   // Auto-click "Add Unconnected Person"
   // ========================================
   async function autoClickAddPerson() {
+      //Check if popup is open
+    const existingDialog = document.querySelector('[role="dialog"][aria-label="Add Unconnected Person"]');
+    if (existingDialog) {
+      console.log("✅ Add Person popup already open, skipping button click");
+      return;
+    }
+      
     console.log("🖱️ Auto-clicking Add Person button...");
     
     function realClick(element) {
