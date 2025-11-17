@@ -6,6 +6,7 @@
 javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js')
 .then(r=>r.text())
 .then(code=>{eval(code); tool1();});})();
+alert("its Working");
 
 }
 
