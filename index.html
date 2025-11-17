@@ -85,6 +85,56 @@
       box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
     }
 
+    .copy-button {
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .copy-button:hover {
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(1.1);
+    }
+
+    .copy-button:active {
+      transform: scale(0.95);
+    }
+
+    .copy-feedback {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #48bb78;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      font-size: 0.9em;
+      animation: slideIn 0.3s ease-out;
+      z-index: 1000;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
     .tool-icon {
       width: 50px;
       height: 50px;
@@ -173,6 +223,22 @@
       }
     }
   </style>
+  <script>
+    function copyToClipboard(text, toolName) {
+      navigator.clipboard.writeText(text).then(() => {
+        const feedback = document.createElement('div');
+        feedback.className = 'copy-feedback';
+        feedback.textContent = `✓ ${toolName} copied to clipboard!`;
+        document.body.appendChild(feedback);
+        
+        setTimeout(() => {
+          feedback.remove();
+        }, 2000);
+      }).catch(err => {
+        alert('Failed to copy. Please try right-click and copy manually.');
+      });
+    }
+  </script>
 </head>
 <body>
   <div class="container">
@@ -187,6 +253,7 @@
           <div class="tool-name">Filter</div>
           <div class="tool-description">Quickly filter and search through records</div>
         </div>
+        <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool1();});})();', 'Filter'); return false;" title="Copy to clipboard">📋</button>
       </a>
 
       <!-- Tool 2 -->
@@ -196,6 +263,7 @@
           <div class="tool-name">Add New Person</div>
           <div class="tool-description">Streamline adding new individuals</div>
         </div>
+        <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool2();});})();', 'Add New Person'); return false;" title="Copy to clipboard">📋</button>
       </a>
 
       <!-- Tool 3 -->
@@ -203,8 +271,9 @@
         <div class="tool-icon">🎯</div>
         <div class="tool-info">
           <div class="tool-name">Auto Find</div>
-          <div class="tool-description">Jump directly to the person you’re editing</div>
+          <div class="tool-description">Jump directly to the person you're editing</div>
         </div>
+        <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool3();});})();', 'Auto Find'); return false;" title="Copy to clipboard">📋</button>
       </a>
     </div>
 
@@ -212,14 +281,18 @@
       <h3>📌 How to Install</h3>
       <div class="step">
         <div class="step-number">1</div>
-        <div class="step-text">Simply drag and drop the tool into the bookmark bar</div>
+        <div class="step-text">Click the 📋 button to copy the JavaScript code</div>
       </div>
       <div class="step">
         <div class="step-number">2</div>
-        <div class="step-text">Name it according to the tool i.e "Filter" </div>
+        <div class="step-text">Create a new bookmark in your browser and paste the code as the URL</div>
       </div>
       <div class="step">
         <div class="step-number">3</div>
+        <div class="step-text">Name it according to the tool (e.g., "Filter")</div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
         <div class="step-text">Visit FamilySearch and click the bookmark to activate the tool</div>
       </div>
     </div>
