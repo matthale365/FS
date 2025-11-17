@@ -1,31 +1,16 @@
-// tools.js — this file can be long, multi-line, and easy to read/edit.
+// tools.js — your functions
 
-// ----------------------------
-// Tool 1
-// ----------------------------
-javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js')
-.then(r=>r.text())
-.then(code=>{eval(code); tool1();});})();
-alert("its Working");
-
+function tool1() {
+    alert("Tool 1 is working!"); // test alert
+    // your real indexing code goes here
 }
 
-
-// ----------------------------
-// Tool 2
-// ----------------------------
-javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js')
-.then(r=>r.text())
-.then(code=>{eval(code); tool2();});})();
-
+function tool2() {
+    alert("Tool 2 is working!");
+    // another tool's code
 }
 
-
-// ----------------------------
-// Tool 3
-// ----------------------------
-javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js')
-.then(r=>r.text())
-.then(code=>{eval(code); tool3();});})();
-
+function tool3() {
+    alert("Tool 3 is working!");
+    // another tool's code
 }
