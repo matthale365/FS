@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FamilySearch Bookmarklets</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { font-size: 24px; }
+        .bookmarklet {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>FamilySearch Tools</h1>
+<p>Drag these to your bookmarks bar:</p>
+
+<a class="bookmarklet" 
+   href="javascript:(()=>{fetch('https://matthale365.github.io/tools.js')
+   .then(r=>r.text())
+   .then(code=>{eval(code); tool1();});})();">
+   Tool 1
+</a>
+<br>
+
+<a class="bookmarklet" 
+   href="javascript:(()=>{fetch('https://matthale365.github.io/tools.js')
+   .then(r=>r.text())
+   .then(code=>{eval(code); tool2();});})();">
+   Tool 2
+</a>
+<br>
+
+<a class="bookmarklet" 
+   href="javascript:(()=>{fetch('https://matthale365.github.io/tools.js')
+   .then(r=>r.text())
+   .then(code=>{eval(code); tool3();});})();">
+   Tool 3
+</a>
+
+<p>To update your tools, edit <code>tools.js</code> in GitHub — no need to change your bookmarks!</p>
+
+</body>
+</html>
