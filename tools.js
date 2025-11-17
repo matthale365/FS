@@ -117,13 +117,14 @@ function tool2() {
   }
 
   // ============================================
-  // HELPER: Simulate real click
+  // HELPER: Simulate real click (with isTrusted)
   // ============================================
   function realClick(element) {
     element.dispatchEvent(new MouseEvent('click', {
       bubbles: true,
       cancelable: true,
-      view: window
+      view: window,
+      isTrusted: true  // Critical for bypassing FamilySearch detection
     }));
   }
 
@@ -306,7 +307,7 @@ function tool2() {
       
       radios.forEach(radio => {
         if (radio.value && radio.value.toLowerCase() === sex) {
-          radio.click();
+          realClick(radio);  // Use realClick instead of .click()
         }
       });
     }
@@ -318,7 +319,7 @@ function tool2() {
     const radios = document.querySelectorAll("input[type='radio']");
     radios.forEach(radio => {
       if (radio.value === "deceased") {
-        radio.click();
+        realClick(radio);  // Use realClick instead of .click()
       }
     });
     
@@ -343,9 +344,9 @@ function tool2() {
         // Try to click the best autocomplete option
         const options = document.querySelectorAll('[role="option"], [data-testid*="standardized-date"]');
         if (options.length > 1) {
-          options[1].click(); // Second option usually more accurate
+          realClick(options[1]); // Use realClick - second option usually more accurate
         } else if (options.length === 1) {
-          options[0].click();
+          realClick(options[0]); // Use realClick
         }
         
         console.log(`✅ ${fieldName}: ${dateValue}`);
