@@ -63,29 +63,27 @@ function tool2() {
 }
 
 function tool3() {
-// FamilySearch Auto Find Tool
+// Try clipboard, prompt as backup
 (async function() {
+  let personId;
+  
   try {
-    // Read text from the clipboard
-    const clipboardText = await navigator.clipboard.readText();
-    
-    // Check if clipboard has content
-    if (!clipboardText) {
-      alert("Clipboard is empty!");
-      return;
+    // Try to read clipboard
+    personId = await navigator.clipboard.readText();
+    if (!personId || personId.trim() === "") {
+      throw new Error("Empty clipboard");
     }
-    
-    // Navigate to the person's FamilySearch profile page
-    // Trims whitespace and encodes the ID for URL safety
-    const personId = clipboardText.trim();
-    const profileUrl = "https://www.familysearch.org/en/tree/person/details/" + encodeURIComponent(personId);
-    
-    window.location.href = profileUrl;
-    
   } catch (error) {
-    // Handle errors (usually permission denied)
-    alert("Unable to read clipboard. Please allow clipboard permissions.");
-    console.error(error);
+    // If clipboard fails, prompt user
+    personId = prompt("Please paste the Person ID:");
   }
+  
+  if (!personId || personId.trim() === "") {
+    alert("No ID provided!");
+    return;
+  }
+  
+  const cleanId = personId.trim();
+  window.location.href = "https://www.familysearch.org/en/tree/person/details/" + encodeURIComponent(cleanId);
 })();
 }
