@@ -1,28 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FamilySearch Tools</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      color: #2d3748;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #718096;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 0.95em;
+    }
+
+    .tools-grid {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .tool-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 25px;
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      cursor: pointer;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    }
+
+    .tool-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .tool-info {
+      flex: 1;
+    }
+
+    .tool-name {
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .tool-description {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .instructions {
+      background: #f7fafc;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+
+    .instructions h3 {
+      color: #2d3748;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .instructions p {
+      color: #4a5568;
+      line-height: 1.6;
+      font-size: 0.9em;
+    }
+
+    .step {
+      display: flex;
+      align-items: start;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .step-number {
+      background: #667eea;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      color: #4a5568;
+      font-size: 0.9em;
+      padding-top: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      .tool-card {
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>FamilySearch Bookmarklets</h1>
-  <p>Right-click → Add to bookmarks or copy code manually:</p>
+  <div class="container">
+    <h1>🌳 FamilySearch Tools</h1>
+    <p class="subtitle">Powerful bookmarklet tools to enhance your FamilySearch experience</p>
+    
+    <div class="tools-grid">
+      <!-- Tool 1 -->
+      <a class="tool-card" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool1();});})();">
+        <div class="tool-icon">🔍</div>
+        <div class="tool-info">
+          <div class="tool-name">Filter</div>
+          <div class="tool-description">Quickly filter and search through records</div>
+        </div>
+      </a>
 
-  <!-- Tool 1 -->
-  <a href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool1();});})();">
-    Tool 1: Filter
-  </a>
-  <br>
+      <!-- Tool 2 -->
+      <a class="tool-card" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool2();});})();">
+        <div class="tool-icon">➕</div>
+        <div class="tool-info">
+          <div class="tool-name">Add New Person</div>
+          <div class="tool-description">Streamline adding new family members</div>
+        </div>
+      </a>
 
-  <!-- Tool 2 -->
-  <a href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool2();});})();">
-    Tool 2: Highlight
-  </a>
-  <br>
+      <!-- Tool 3 -->
+      <a class="tool-card" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool3();});})();">
+        <div class="tool-icon">🎯</div>
+        <div class="tool-info">
+          <div class="tool-name">Auto Find</div>
+          <div class="tool-description">Automatically discover potential matches</div>
+        </div>
+      </a>
+    </div>
 
-  <!-- Tool 3 -->
-  <a href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool3();});})();">
-    Tool 3: Auto-fill
-  </a>
+    <div class="instructions">
+      <h3>📌 How to Install</h3>
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-text">Right-click on any tool above</div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-text">Select "Bookmark this link" or "Add to bookmarks"</div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-text">Visit FamilySearch and click the bookmark to activate the tool</div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
