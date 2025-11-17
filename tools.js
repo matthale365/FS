@@ -341,6 +341,7 @@ function tool2() {
     await setDate("deathDate", personData.deathDate);
     
     console.log("✅ Form filled successfully!");
+    alert("✅ Add Person form has been filled out");
   }
   
 })();
