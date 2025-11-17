@@ -58,311 +58,287 @@ function tool1() {
 }
 
 function tool2() {
-// FamilySearch Add New Person Tool (Improved)
-// Extracts person data from records and auto-fills the add person form
+// FamilySearch Add New Person Tool
+// This script extracts person data from a record page and auto-fills it when adding a new person
 
 (async function() {
   try {
     const currentUrl = location.href;
     
     // ============================================
-    // ROUTE: Check URL and run appropriate function
+    // ROUTE: Determine which function to run based on URL
     // ============================================
     
     if (currentUrl.includes("familysearch.org/ark:/")) {
+      // We're on a RECORD page - extract data
       await extractPersonData();
       
     } else if (currentUrl.includes("familysearch.org/en/tree/")) {
+      // We're on a TREE page - fill in the form
       await autoClickAddPerson();
       await fillPersonForm();
       
     } else {
-      console.warn("⚠️ This script works on FamilySearch record or tree pages.");
+      console.log("This script only works on FamilySearch record or tree pages.");
     }
     
   } catch (error) {
-    console.error("❌ Error:", error);
-    alert("Something went wrong. Check the console for details.");
-  }
-
-  // ============================================
-  // HELPER: Wait for element to appear
-  // ============================================
-  function waitForElement(selector, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-      const element = document.querySelector(selector);
-      if (element) {
-        resolve(element);
-        return;
-      }
-      
-      const observer = new MutationObserver(() => {
-        const element = document.querySelector(selector);
-        if (element) {
-          observer.disconnect();
-          resolve(element);
-        }
-      });
-      
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-      
-      setTimeout(() => {
-        observer.disconnect();
-        reject(new Error(`Element ${selector} not found after ${timeout}ms`));
-      }, timeout);
-    });
-  }
-
-  // ============================================
-  // HELPER: Simulate real click (with isTrusted)
-  // ============================================
-  function realClick(element) {
-    element.dispatchEvent(new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-      isTrusted: true  // Critical for bypassing FamilySearch detection
-    }));
-  }
-
-  // ============================================
-  // HELPER: Set input value (bypasses React)
-  // ============================================
-  function setInputValue(element, value) {
-    if (!element || !value) return;
-    
-    const nativeSetter = Object.getOwnPropertyDescriptor(
-      HTMLInputElement.prototype, 
-      'value'
-    ).set;
-    
-    element.focus();
-    nativeSetter.call(element, value);
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
+    console.error("Error in Add New Person script:", error);
   }
 
   // ============================================
   // FUNCTION: Extract data from record page
   // ============================================
   async function extractPersonData() {
-    console.log("📋 Extracting person data...");
+    console.log("📋 Extracting person data from record...");
     
     const personData = {};
+    const normalize = (str) => str.toLowerCase().replace(/[^a-z]/g, "");
     
-    // Try multiple selector strategies for robustness
-    const labelSelectors = [
-      ".leftSideCss_lebwza5",
-      "[class*='leftSide']",
-      "dt" // Sometimes FamilySearch uses definition lists
-    ];
-    
-    let labels = [];
-    for (const selector of labelSelectors) {
-      labels = document.querySelectorAll(selector);
-      if (labels.length > 0) break;
-    }
-    
-    if (labels.length === 0) {
-      throw new Error("Could not find person data on this page");
-    }
-    
-    // Extract data from label/value pairs
-    labels.forEach(label => {
-      const key = label.textContent.toLowerCase().replace(/[^a-z]/g, "");
+    // Find all label/value pairs on the page
+    document.querySelectorAll(".leftSideCss_lebwza5").forEach(label => {
+      const key = normalize(label.textContent);
       const valueContainer = label.nextElementSibling;
-      if (!valueContainer) return;
       
-      const valueElement = valueContainer.querySelector("strong") || valueContainer;
+      // Make sure we found the value container
+      if (!valueContainer?.classList.contains("rightSideCss_r1y3a6mc")) {
+        return;
+      }
+      
+      // Get the actual value text
+      const valueElement = valueContainer.querySelector("strong");
+      if (!valueElement) return;
+      
       const value = valueElement.textContent.trim();
       
-      // Map fields
-      const fieldMap = {
-        'name': 'fullName',
-        'sex': 'sex',
-        'gender': 'sex',
-        'birthdate': 'birthDate',
-        'birth': 'birthDate',
-        'birthplace': 'birthplace',
-        'deathdate': 'deathDate',
-        'death': 'deathDate',
-        'deathplace': 'deathplace'
-      };
-      
-      if (fieldMap[key]) {
-        personData[fieldMap[key]] = value;
+      // Map the fields we care about
+      if (key === "name") {
+        personData.fullName = value;
+      } else if (key === "sex") {
+        personData.sex = value;
+      } else if (key === "birthdate") {
+        personData.birthDate = value;
+      } else if (key === "birthplace") {
+        personData.birthplace = value;
+      } else if (key === "deathdate") {
+        personData.deathDate = value;
       }
     });
     
-    // Parse full name into parts
+    // Split full name into parts
     if (personData.fullName) {
-      const nameParts = personData.fullName.split(/\s+/).filter(Boolean);
-      if (nameParts.length === 1) {
-        personData.firstName = nameParts[0];
-        personData.lastName = "";
-        personData.middleName = "";
-      } else {
-        personData.firstName = nameParts[0];
-        personData.lastName = nameParts[nameParts.length - 1];
-        personData.middleName = nameParts.slice(1, -1).join(" ");
-      }
-    }
-    
-    // Store data - try both storage methods for reliability
-    const dataString = JSON.stringify(personData);
-    try {
-      localStorage.setItem("fs_person_data", dataString);
-    } catch (e) {
-      console.warn("localStorage unavailable, using sessionStorage");
-      sessionStorage.setItem("fs_person_data", dataString);
-    }
-    
-    console.log("✅ Extracted:", personData);
-    alert(`✅ Data saved for: ${personData.fullName || "Unknown"}\n\nNow navigate to add a new person.`);
-  }
-
-  // ============================================
-  // FUNCTION: Auto-click "Add Unconnected Person"
-  // ============================================
-  async function autoClickAddPerson() {
-    console.log("🖱️ Looking for Add Person button...");
-    
-    try {
-      // Try to find and click Recents button
-      const recentsButton = await waitForElement('button[data-testid="recents-button"]', 3000);
-      realClick(recentsButton);
-      
-      // Wait a moment for menu to open
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Click Add Unconnected Person
-      const addButton = await waitForElement('button[data-testid="add-unconnected-person"]', 3000);
-      realClick(addButton);
-      
-      // Wait for form to load
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log("✅ Add Person form opened");
-      
-    } catch (error) {
-      console.log("ℹ️ Could not auto-click (maybe already on form page)");
-    }
-  }
-
-  // ============================================
-  // FUNCTION: Fill the add person form
-  // ============================================
-  async function fillPersonForm() {
-    console.log("📝 Filling form...");
-    
-    // Retrieve stored data (try both storage methods)
-    let personData;
-    try {
-      personData = JSON.parse(
-        localStorage.getItem("fs_person_data") || 
-        sessionStorage.getItem("fs_person_data") || 
-        "{}"
-      );
-    } catch (e) {
-      personData = {};
-    }
-    
-    if (!personData.fullName && !personData.firstName) {
-      alert("⚠️ No person data found.\n\nPlease run this bookmarklet on a record page first to extract data.");
-      return;
-    }
-    
-    // Ensure we have name parts
-    if (!personData.firstName && personData.fullName) {
       const nameParts = personData.fullName.split(/\s+/).filter(Boolean);
       personData.firstName = nameParts[0] || "";
       personData.lastName = nameParts[nameParts.length - 1] || "";
+      personData.middleName = nameParts.slice(1, -1).join(" ");
     }
     
-    // Build full first name (including middle)
-    const fullFirstName = [personData.firstName, personData.middleName]
-      .filter(Boolean)
-      .join(" ");
+    // Store in localStorage for later use
+    localStorage.setItem("fs_person_data", JSON.stringify(personData));
+    console.log("✅ Person data saved:", personData);
+    alert("✅ Person data extracted! Now navigate to add a new person.");
+  }
+
+  // ============================================
+  // FUNCTION: Auto-click "Add Unconnected Person" button
+  // ============================================
+  async function autoClickAddPerson() {
+    console.log("🖱️ Auto-clicking Add Person button...");
+    
+    function realClick(element) {
+      element.dispatchEvent(new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        isTrusted: true
+      }));
+    }
+    
+    let attemptCount = 0;
+    
+    // First, find and click the "Recents" button
+    await new Promise((resolve) => {
+      const findRecentsButton = setInterval(function() {
+        const recentsButton = document.querySelector('button[data-testid="recents-button"]');
+        
+        if (recentsButton) {
+          clearInterval(findRecentsButton);
+          realClick(recentsButton);
+          
+          // Then find and click "Add Unconnected Person"
+          let addButtonAttempts = 0;
+          const findAddButton = setInterval(function() {
+            const addButton = document.querySelector('button[data-testid="add-unconnected-person"]');
+            
+            if (addButton) {
+              clearInterval(findAddButton);
+              setTimeout(function() {
+                realClick(addButton);
+                resolve();
+              }, 500);
+            } else if (addButtonAttempts++ > 40) {
+              clearInterval(findAddButton);
+              resolve();
+            }
+          }, 250);
+          
+        } else if (attemptCount++ > 40) {
+          clearInterval(findRecentsButton);
+          resolve();
+        }
+      }, 250);
+    });
+    
+    // Wait for page transitions
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+
+  // ============================================
+  // FUNCTION: Fill in the add person form
+  // ============================================
+  async function fillPersonForm() {
+    console.log("📝 Filling person form...");
+    
+    // Retrieve stored person data
+    const personData = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+    
+    if (!personData.firstName && !personData.fullName) {
+      alert("⚠️ No person data found. Please run this on a record page first.");
+      return;
+    }
+    
+    // Ensure we have first/last name
+    if (!personData.firstName || !personData.lastName) {
+      const nameParts = (personData.fullName || "").trim().split(/\s+/);
+      personData.lastName = nameParts.length > 1 ? nameParts.pop() : "";
+      personData.firstName = nameParts.join(" ");
+    }
+    
+    // Combine first and middle names
+    const firstNameWithMiddle = (personData.firstName || "") + 
+                                (personData.middleName ? " " + personData.middleName : "");
 
     // ============================================
-    // Fill basic fields
+    // HELPER: Set input value programmatically
     // ============================================
-    
-    const firstNameInput = document.querySelector("input[data-testid='first-name']");
-    setInputValue(firstNameInput, fullFirstName);
-    
-    const lastNameInput = document.querySelector("input[data-testid='last-name']");
-    setInputValue(lastNameInput, personData.lastName || "");
-    
-    // ============================================
-    // Set sex/gender radio buttons
-    // ============================================
-    
-    if (personData.sex) {
-      const sex = personData.sex.toLowerCase().includes("male") ? "male" : "female";
-      const radios = document.querySelectorAll("input[type='radio']");
+    const setInput = (element, value) => {
+      if (!element) return;
       
-      radios.forEach(radio => {
-        if (radio.value && radio.value.toLowerCase() === sex) {
-          realClick(radio);  // Use realClick instead of .click()
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype, 
+        'value'
+      ).set;
+      
+      element.focus();
+      nativeInputValueSetter.call(element, value);
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    // ============================================
+    // HELPER: Set date field with autocomplete
+    // ============================================
+    const setDate = (fieldName, value) => new Promise(resolve => {
+      if (!value) {
+        resolve();
+        return;
+      }
+      
+      const checkForField = setInterval(() => {
+        const input = document.querySelector(`input[name='${fieldName}']`);
+        
+        if (input) {
+          clearInterval(checkForField);
+          
+          // Scroll to and focus the input
+          input.scrollIntoView({ block: "center" });
+          input.focus();
+          
+          // Set the value
+          setInput(input, value);
+          
+          // Trigger autocomplete by typing an extra character
+          input.value += "a";
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          // Reset to correct value
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          // Wait for and click the autocomplete option
+          let autocompleteAttempts = 0;
+          const checkForAutocomplete = setInterval(() => {
+            const options = Array.from(document.querySelectorAll(
+              '[role="option"], [data-testid*="standardized-date"]'
+            ));
+            
+            // Click second option if available (usually more accurate)
+            if (options.length > 1) {
+              options[1].click();
+              clearInterval(checkForAutocomplete);
+              resolve();
+            } 
+            // Otherwise click first option after a few attempts
+            else if (options[0] && autocompleteAttempts > 3) {
+              options[0].click();
+              clearInterval(checkForAutocomplete);
+              resolve();
+            }
+            
+            // Give up after 20 attempts
+            if (++autocompleteAttempts > 20) {
+              clearInterval(checkForAutocomplete);
+              resolve();
+            }
+          }, 100);
+        }
+      }, 100);
+    });
+
+    // ============================================
+    // FILL IN ALL THE FORM FIELDS
+    // ============================================
+    
+    // Fill first name (with middle name)
+    setInput(
+      document.querySelector("input[data-testid='first-name']"), 
+      firstNameWithMiddle
+    );
+    
+    // Fill last name
+    setInput(
+      document.querySelector("input[data-testid='last-name']"), 
+      personData.lastName || ""
+    );
+    
+    // Set sex/gender
+    if (personData.sex) {
+      const sex = personData.sex.toLowerCase() === "male" ? "male" : "female";
+      document.querySelectorAll(".radioCss_rw3ic9v").forEach(radio => {
+        if (radio.value.toLowerCase() === sex) {
+          radio.click();
         }
       });
     }
     
-    // ============================================
-    // Set living status to deceased
-    // ============================================
-    
-    const radios = document.querySelectorAll("input[type='radio']");
-    radios.forEach(radio => {
+    // Set living status to "deceased"
+    document.querySelectorAll(".radioCss_rw3ic9v").forEach(radio => {
       if (radio.value === "deceased") {
-        realClick(radio);  // Use realClick instead of .click()
+        radio.click();
       }
     });
     
-    // ============================================
-    // Fill date fields with improved autocomplete
-    // ============================================
+    // Fill birth date (with autocomplete)
+    await setDate("birthDate", personData.birthDate);
     
-    const fillDateField = async (fieldName, dateValue) => {
-      if (!dateValue) return;
-      
-      try {
-        const input = await waitForElement(`input[name='${fieldName}']`, 2000);
-        
-        input.scrollIntoView({ block: "center", behavior: "smooth" });
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        setInputValue(input, dateValue);
-        
-        // Wait for autocomplete dropdown
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Try to click the best autocomplete option
-        const options = document.querySelectorAll('[role="option"], [data-testid*="standardized-date"]');
-        if (options.length > 1) {
-          realClick(options[1]); // Use realClick - second option usually more accurate
-        } else if (options.length === 1) {
-          realClick(options[0]); // Use realClick
-        }
-        
-        console.log(`✅ ${fieldName}: ${dateValue}`);
-        
-      } catch (error) {
-        console.warn(`⚠️ Could not fill ${fieldName}`);
-      }
-    };
+    // Fill birth place
+    setInput(
+      document.querySelector("input[name='birthPlace']"), 
+      personData.birthplace || ""
+    );
     
-    await fillDateField("birthDate", personData.birthDate);
-    
-    // Fill birthplace
-    const birthPlaceInput = document.querySelector("input[name='birthPlace']");
-    setInputValue(birthPlaceInput, personData.birthplace || "");
-    
-    await fillDateField("deathDate", personData.deathDate);
+    // Fill death date (with autocomplete)
+    await setDate("deathDate", personData.deathDate);
     
     console.log("✅ Form filled successfully!");
   }
