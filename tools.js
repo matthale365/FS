@@ -125,7 +125,9 @@ function tool2() {
   async function extractAncestryData() {
     console.log("📋 Extracting person data from Ancestry...");
     
-    const personData = {};
+    const personData = {
+      source: "ancestry"  // Add a marker to identify Ancestry data
+    };
     
     // Extract full name
     const nameElement = document.querySelector("h1.userCardTitle");
@@ -142,7 +144,7 @@ function tool2() {
       } else {
         personData.lastName = nameParts[nameParts.length - 1];
         personData.firstName = nameParts.slice(0, -1).join(" ");
-        personData.middleName = ""; // Ancestry doesn't separate middle name
+        personData.middleName = "";
       }
     }
     
@@ -178,12 +180,16 @@ function tool2() {
       }
     }
     
-    // Note: Ancestry doesn't have a clear gender field, so we skip it
-    // The fill function will handle missing gender gracefully
-    
-    localStorage.setItem("fs_person_data", JSON.stringify(personData));
-    console.log("✅ Ancestry data saved:", personData);
-    alert("✅ Person data extracted from Ancestry! Now navigate to FamilySearch to add a new person.");
+    // Save to clipboard as JSON (works cross-domain!)
+    const jsonData = JSON.stringify(personData);
+    try {
+      await navigator.clipboard.writeText(jsonData);
+      console.log("✅ Ancestry data saved to clipboard:", personData);
+      alert(`✅ Data copied to clipboard for: ${personData.fullName || "Unknown"}\n\nNow navigate to FamilySearch and run the script again to paste!`);
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      alert("❌ Could not copy to clipboard. Please allow clipboard permissions.");
+    }
   }
 
   // ========================================
@@ -251,10 +257,31 @@ function tool2() {
   async function fillPersonForm() {
     console.log("📝 Filling person form...");
     
-    const personData = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+    let personData = {};
+    
+    // First, try to get data from localStorage (FamilySearch extraction)
+    try {
+      personData = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+    } catch (e) {
+      console.warn("No localStorage data found");
+    }
+    
+    // If no localStorage data, try to read from clipboard (Ancestry extraction)
+    if (!personData.firstName && !personData.fullName) {
+      try {
+        const clipboardText = await navigator.clipboard.readText();
+        // Check if clipboard contains JSON data
+        if (clipboardText.startsWith("{") && clipboardText.includes("fullName")) {
+          personData = JSON.parse(clipboardText);
+          console.log("📋 Data loaded from clipboard (Ancestry):", personData);
+        }
+      } catch (e) {
+        console.warn("Could not read clipboard:", e);
+      }
+    }
     
     if (!personData.firstName && !personData.fullName) {
-      alert("⚠️ No person data found. Please run this on a record page first.");
+      alert("⚠️ No person data found.\n\nPlease run this on a record page or Ancestry page first.");
       return;
     }
     
