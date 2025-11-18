@@ -539,8 +539,11 @@ function tool2() {
       }
     });
     
+    // Fill dates first (both auto-standardize)
     await setDate("birthDate", personData.birthDate);
     await setDate("deathDate", personData.deathDate);
+    
+    // Then fill places (user manually standardizes these)
     setInput(document.querySelector("input[name='birthPlace']"), personData.birthplace || "");
     setInput(document.querySelector("input[name='deathPlace']"), personData.deathplace || "");
     
