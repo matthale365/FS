@@ -258,27 +258,52 @@ function tool2() {
     console.log("📝 Filling person form...");
     
     let personData = {};
+    let dataSource = "none";
     
-    // First, try to get data from localStorage (FamilySearch extraction)
+    // First, check if clipboard has Ancestry data
     try {
-      personData = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+      const clipboardText = await navigator.clipboard.readText();
+      console.log("🔍 Clipboard contents:", clipboardText.substring(0, 100) + "...");
+      
+      // Check if clipboard contains JSON with ancestry marker
+      if (clipboardText.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(clipboardText);
+          console.log("🔍 Parsed clipboard data:", parsed);
+          
+          if (parsed.source === "ancestry") {
+            personData = parsed;
+            dataSource = "ancestry";
+            console.log("✅ Using data from clipboard (Ancestry):", personData);
+          } else {
+            console.log("⚠️ Clipboard has JSON but no ancestry marker");
+          }
+        } catch (parseError) {
+          console.warn("⚠️ Could not parse clipboard JSON:", parseError);
+        }
+      } else {
+        console.log("⚠️ Clipboard doesn't start with { - not JSON");
+      }
     } catch (e) {
-      console.warn("No localStorage data found");
+      console.warn("❌ Could not read clipboard:", e);
     }
     
-    // If no localStorage data, try to read from clipboard (Ancestry extraction)
-    if (!personData.firstName && !personData.fullName) {
+    // If no Ancestry data in clipboard, use localStorage (FamilySearch)
+    if (dataSource === "none") {
+      console.log("📂 No Ancestry data found, checking localStorage...");
       try {
-        const clipboardText = await navigator.clipboard.readText();
-        // Check if clipboard contains JSON data
-        if (clipboardText.startsWith("{") && clipboardText.includes("fullName")) {
-          personData = JSON.parse(clipboardText);
-          console.log("📋 Data loaded from clipboard (Ancestry):", personData);
+        personData = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+        if (personData.firstName || personData.fullName) {
+          dataSource = "familysearch";
+          console.log("✅ Using data from localStorage (FamilySearch):", personData);
         }
       } catch (e) {
-        console.warn("Could not read clipboard:", e);
+        console.warn("No localStorage data found");
       }
     }
+    
+    console.log("🎯 Final data source:", dataSource);
+    console.log("🎯 Final person data:", personData);
     
     if (!personData.firstName && !personData.fullName) {
       alert("⚠️ No person data found.\n\nPlease run this on a record page or Ancestry page first.");
