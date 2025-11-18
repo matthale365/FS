@@ -69,11 +69,13 @@ function tool2() {
       await extractPersonData();
     } else if (currentUrl.includes("ancestry.com/family-tree/person/tree")) {
       await extractAncestryData();
+    } else if (currentUrl.includes("findagrave.com/memorial/")) {
+      await extractFindAGraveData();
     } else if (currentUrl.includes("familysearch.org/en/tree/")) {
       await autoClickAddPerson();
       await fillPersonForm();
     } else {
-      console.log("This script only works on FamilySearch or Ancestry pages.");
+      console.log("This script works on FamilySearch, Ancestry, or FindAGrave pages.");
     }
     
   } catch (error) {
@@ -228,6 +230,82 @@ function tool2() {
   }
 
   // ========================================
+  // Extract data from FindAGrave page
+  // ========================================
+  async function extractFindAGraveData() {
+    console.log("📋 Extracting person data from FindAGrave...");
+    
+    const personData = {
+      source: "findagrave"
+    };
+    
+    // Extract full name
+    const nameElement = document.querySelector("h1#bio-name");
+    if (nameElement) {
+      // Remove any extra elements like veteran badges
+      const nameClone = nameElement.cloneNode(true);
+      const badges = nameClone.querySelectorAll('b, span.visually-hidden');
+      badges.forEach(badge => badge.remove());
+      
+      const fullName = nameClone.textContent.trim();
+      personData.fullName = fullName;
+      
+      // Split name: everything except last word = first name, last word = last name
+      const nameParts = fullName.split(/\s+/).filter(Boolean);
+      if (nameParts.length === 1) {
+        personData.firstName = nameParts[0];
+        personData.lastName = "";
+        personData.middleName = "";
+      } else {
+        personData.lastName = nameParts[nameParts.length - 1];
+        personData.firstName = nameParts.slice(0, -1).join(" ");
+        personData.middleName = "";
+      }
+    }
+    
+    // Extract birth date
+    const birthDate = document.querySelector("time#birthDateLabel");
+    if (birthDate) {
+      personData.birthDate = birthDate.textContent.trim();
+    }
+    
+    // Extract birth place
+    const birthPlace = document.querySelector("div#birthLocationLabel");
+    if (birthPlace) {
+      personData.birthplace = birthPlace.textContent.trim();
+    }
+    
+    // Extract death date
+    const deathDate = document.querySelector("span#deathDateLabel");
+    if (deathDate) {
+      // Remove the age part if present (e.g., "2 May 1993 (aged 60)" -> "2 May 1993")
+      let deathText = deathDate.textContent.trim();
+      deathText = deathText.replace(/\s*\(aged.*?\)\s*$/i, '');
+      personData.deathDate = deathText;
+    }
+    
+    // Extract death place
+    const deathPlace = document.querySelector("div#deathLocationLabel");
+    if (deathPlace) {
+      personData.deathplace = deathPlace.textContent.trim();
+    }
+    
+    // Add timestamp
+    personData.timestamp = Date.now();
+    
+    // Save to clipboard as JSON (works cross-domain!)
+    const jsonData = JSON.stringify(personData);
+    try {
+      await navigator.clipboard.writeText(jsonData);
+      console.log("✅ FindAGrave data saved to clipboard:", personData);
+      showNotification(`✅ Data extracted: ${personData.fullName || "Unknown"}`);
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      alert("❌ Could not copy to clipboard. Please allow clipboard permissions.");
+    }
+  }
+
+  // ========================================
   // Auto-click "Add Unconnected Person"
   // ========================================
   async function autoClickAddPerson() {
@@ -314,9 +392,9 @@ function tool2() {
           const parsed = JSON.parse(clipboardText);
           console.log("🔍 Parsed clipboard data:", parsed);
           
-          if (parsed.source === "ancestry") {
+          if (parsed.source === "ancestry" || parsed.source === "findagrave") {
             ancestryData = parsed;
-            console.log("✅ Found Ancestry data in clipboard (timestamp:", ancestryData.timestamp, ")");
+            console.log("✅ Found clipboard data (timestamp:", ancestryData.timestamp, ")");
           }
         } catch (parseError) {
           console.warn("⚠️ Could not parse clipboard JSON:", parseError);
