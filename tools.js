@@ -67,11 +67,13 @@ function tool2() {
     
     if (currentUrl.includes("familysearch.org/ark:/")) {
       await extractPersonData();
+    } else if (currentUrl.includes("ancestry.com/family-tree/person/tree")) {
+      await extractAncestryData();
     } else if (currentUrl.includes("familysearch.org/en/tree/")) {
       await autoClickAddPerson();
       await fillPersonForm();
     } else {
-      console.log("This script only works on FamilySearch record or tree pages.");
+      console.log("This script only works on FamilySearch or Ancestry pages.");
     }
     
   } catch (error) {
@@ -118,16 +120,84 @@ function tool2() {
   }
 
   // ========================================
+  // Extract data from Ancestry page
+  // ========================================
+  async function extractAncestryData() {
+    console.log("📋 Extracting person data from Ancestry...");
+    
+    const personData = {};
+    
+    // Extract full name
+    const nameElement = document.querySelector("h1.userCardTitle");
+    if (nameElement) {
+      const fullName = nameElement.textContent.trim();
+      personData.fullName = fullName;
+      
+      // Split name: everything except last word = first name, last word = last name
+      const nameParts = fullName.split(/\s+/).filter(Boolean);
+      if (nameParts.length === 1) {
+        personData.firstName = nameParts[0];
+        personData.lastName = "";
+        personData.middleName = "";
+      } else {
+        personData.lastName = nameParts[nameParts.length - 1];
+        personData.firstName = nameParts.slice(0, -1).join(" ");
+        personData.middleName = ""; // Ancestry doesn't separate middle name
+      }
+    }
+    
+    // Extract birth date and place
+    const birthSection = Array.from(document.querySelectorAll(".userCardContent")).find(
+      section => section.querySelector("h3.userCardTitle")?.textContent.trim() === "Birth"
+    );
+    if (birthSection) {
+      const birthDate = birthSection.querySelector(".factItemDate");
+      if (birthDate) {
+        personData.birthDate = birthDate.textContent.trim();
+      }
+      
+      const birthPlace = birthSection.querySelector(".factItemLocation");
+      if (birthPlace) {
+        personData.birthplace = birthPlace.textContent.trim();
+      }
+    }
+    
+    // Extract death date and place
+    const deathSection = Array.from(document.querySelectorAll(".userCardContent")).find(
+      section => section.querySelector("h3.userCardTitle")?.textContent.trim() === "Death"
+    );
+    if (deathSection) {
+      const deathDate = deathSection.querySelector(".factItemDate");
+      if (deathDate) {
+        personData.deathDate = deathDate.textContent.trim();
+      }
+      
+      const deathPlace = deathSection.querySelector(".factItemLocation");
+      if (deathPlace) {
+        personData.deathplace = deathPlace.textContent.trim();
+      }
+    }
+    
+    // Note: Ancestry doesn't have a clear gender field, so we skip it
+    // The fill function will handle missing gender gracefully
+    
+    localStorage.setItem("fs_person_data", JSON.stringify(personData));
+    console.log("✅ Ancestry data saved:", personData);
+    alert("✅ Person data extracted from Ancestry! Now navigate to FamilySearch to add a new person.");
+  }
+
+  // ========================================
   // Auto-click "Add Unconnected Person"
   // ========================================
   async function autoClickAddPerson() {
-      //Check if popup is open
+    // Check if the popup is already open
     const existingDialog = document.querySelector('[role="dialog"][aria-label="Add Unconnected Person"]');
+    
     if (existingDialog) {
       console.log("✅ Add Person popup already open, skipping button click");
       return;
     }
-      
+    
     console.log("🖱️ Auto-clicking Add Person button...");
     
     function realClick(element) {
