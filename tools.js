@@ -578,3 +578,7 @@ function tool3() {
   window.location.href = "https://www.familysearch.org/en/tree/person/details/" + encodeURIComponent(cleanId);
 })();
 }
+
+function tool4() {
+    alert("Yo this thinsg working");
+}
