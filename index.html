@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -222,7 +222,7 @@
         padding: 20px;
       }
 
-      .dev-tool {
+     .dev-tool {
         position: fixed;
         bottom: 20px;
         left: 20px;
@@ -230,20 +230,25 @@
         color: white;
         padding: 12px 20px;
         border-radius: 8px;
-        text-decoration: none;
+        text-decoration: none; /* Remove blue underline */
         font-size: 0.9em;
         font-weight: 600;
         box-shadow: 0 4px 15px rgba(221, 107, 32, 0.4);
         transition: all 0.3s ease;
-        cursor: move; /* Shows it's draggable */
+        cursor: move;
         z-index: 999;
-        opacity: 0.7; /* Subtle by default */
+        opacity: 0.7;
+        display: inline-block; /* ADD THIS - makes it behave like a button */
       }
 
       .dev-tool:hover {
         opacity: 1;
         transform: translateY(-3px);
         box-shadow: 0 6px 20px rgba(221, 107, 32, 0.6);
+      }
+
+      .dev-tool:visited {
+        color: white; /* ADD THIS - prevents purple visited link color */
       }
     }
   </style>
