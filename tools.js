@@ -542,6 +542,7 @@ function tool2() {
     await setDate("birthDate", personData.birthDate);
     setInput(document.querySelector("input[name='birthPlace']"), personData.birthplace || "");
     await setDate("deathDate", personData.deathDate);
+    setInput(document.querySelector("input[name='deathPlace']"), personData.deathplace || "");
     
     console.log("✅ Form filled successfully!");
   }
