@@ -81,6 +81,35 @@ function tool2() {
   }
 
   // ========================================
+  // HELPER: Show auto-dismiss notification
+  // ========================================
+  function showNotification(message, duration = 2000) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #48bb78;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10000;
+      animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'fadeOut 0.3s ease-out';
+      setTimeout(() => notification.remove(), 300);
+    }, duration);
+  }
+
+  // ========================================
   // Extract data from record page
   // ========================================
   async function extractPersonData() {
@@ -114,9 +143,12 @@ function tool2() {
       personData.middleName = nameParts.slice(1, -1).join(" ");
     }
     
+    // Add timestamp
+    personData.timestamp = Date.now();
+    
     localStorage.setItem("fs_person_data", JSON.stringify(personData));
     console.log("✅ Person data saved:", personData);
-    alert("✅ Person data extracted! Now navigate to add a new person.");
+    showNotification(`✅ Data extracted: ${personData.fullName || "Unknown"}`);
   }
 
   // ========================================
@@ -180,12 +212,15 @@ function tool2() {
       }
     }
     
+    // Add timestamp
+    personData.timestamp = Date.now();
+    
     // Save to clipboard as JSON (works cross-domain!)
     const jsonData = JSON.stringify(personData);
     try {
       await navigator.clipboard.writeText(jsonData);
       console.log("✅ Ancestry data saved to clipboard:", personData);
-      alert(`✅ Data copied to clipboard for: ${personData.fullName || "Unknown"}\n\nNow navigate to FamilySearch and run the script again to paste!`);
+      showNotification(`✅ Data extracted: ${personData.fullName || "Unknown"}`);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       alert("❌ Could not copy to clipboard. Please allow clipboard permissions.");
@@ -257,49 +292,68 @@ function tool2() {
   async function fillPersonForm() {
     console.log("📝 Filling person form...");
     
-    let personData = {};
-    let dataSource = "none";
+    let ancestryData = null;
+    let familysearchData = null;
     
-    // First, check if clipboard has Ancestry data
+    // Check clipboard for Ancestry data
     try {
       const clipboardText = await navigator.clipboard.readText();
       console.log("🔍 Clipboard contents:", clipboardText.substring(0, 100) + "...");
       
-      // Check if clipboard contains JSON with ancestry marker
       if (clipboardText.startsWith("{")) {
         try {
           const parsed = JSON.parse(clipboardText);
           console.log("🔍 Parsed clipboard data:", parsed);
           
           if (parsed.source === "ancestry") {
-            personData = parsed;
-            dataSource = "ancestry";
-            console.log("✅ Using data from clipboard (Ancestry):", personData);
-          } else {
-            console.log("⚠️ Clipboard has JSON but no ancestry marker");
+            ancestryData = parsed;
+            console.log("✅ Found Ancestry data in clipboard (timestamp:", ancestryData.timestamp, ")");
           }
         } catch (parseError) {
           console.warn("⚠️ Could not parse clipboard JSON:", parseError);
         }
-      } else {
-        console.log("⚠️ Clipboard doesn't start with { - not JSON");
       }
     } catch (e) {
       console.warn("❌ Could not read clipboard:", e);
     }
     
-    // If no Ancestry data in clipboard, use localStorage (FamilySearch)
-    if (dataSource === "none") {
-      console.log("📂 No Ancestry data found, checking localStorage...");
-      try {
-        personData = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
-        if (personData.firstName || personData.fullName) {
-          dataSource = "familysearch";
-          console.log("✅ Using data from localStorage (FamilySearch):", personData);
-        }
-      } catch (e) {
-        console.warn("No localStorage data found");
+    // Check localStorage for FamilySearch data
+    try {
+      const stored = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+      if (stored.firstName || stored.fullName) {
+        familysearchData = stored;
+        console.log("✅ Found FamilySearch data in localStorage (timestamp:", familysearchData.timestamp, ")");
       }
+    } catch (e) {
+      console.warn("No localStorage data found");
+    }
+    
+    // Compare timestamps and use the newer data
+    let personData = {};
+    let dataSource = "none";
+    
+    if (ancestryData && familysearchData) {
+      // Both exist - use whichever is newer
+      const ancestryTime = ancestryData.timestamp || 0;
+      const fsTime = familysearchData.timestamp || 0;
+      
+      if (ancestryTime > fsTime) {
+        personData = ancestryData;
+        dataSource = "ancestry";
+        console.log("🎯 Using Ancestry data (newer)");
+      } else {
+        personData = familysearchData;
+        dataSource = "familysearch";
+        console.log("🎯 Using FamilySearch data (newer)");
+      }
+    } else if (ancestryData) {
+      personData = ancestryData;
+      dataSource = "ancestry";
+      console.log("🎯 Using Ancestry data (only source)");
+    } else if (familysearchData) {
+      personData = familysearchData;
+      dataSource = "familysearch";
+      console.log("🎯 Using FamilySearch data (only source)");
     }
     
     console.log("🎯 Final data source:", dataSource);
