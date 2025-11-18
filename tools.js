@@ -231,10 +231,19 @@ function tool2() {
   // Auto-click "Add Unconnected Person"
   // ========================================
   async function autoClickAddPerson() {
-    // Check if the popup is already open
-    const existingDialog = document.querySelector('[role="dialog"][aria-label="Add Unconnected Person"]');
+    // Check if ANY add person popup is already open
+    const existingDialogs = [
+      document.querySelector('[role="dialog"][aria-label="Add Unconnected Person"]'),
+      document.querySelector('[role="dialog"][aria-label*="Add Parent"]'),
+      document.querySelector('[role="dialog"][aria-label*="Add Spouse"]'),
+      document.querySelector('[role="dialog"][aria-label*="Add Child"]'),
+      // Generic fallback - check if any dialog with person form fields exists
+      document.querySelector('[role="dialog"] input[data-testid="first-name"]')
+    ];
     
-    if (existingDialog) {
+    const openDialog = existingDialogs.find(dialog => dialog !== null);
+    
+    if (openDialog) {
       console.log("✅ Add Person popup already open, skipping button click");
       return;
     }
