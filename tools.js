@@ -957,33 +957,26 @@ async function fillPersonForm() {
   let personData = {};
   let dataSource = "none";
   
-  if (ancestryData && familysearchData) {
-    // Both exist - use whichever is newer
-    const ancestryTime = ancestryData.timestamp || 0;
-    const fsTime = familysearchData.timestamp || 0;
-    
-    if (ancestryTime > fsTime) {
-      personData = ancestryData;
-      dataSource = "ancestry/findagrave";
-      console.log("🎯 Using Ancestry/FindAGrave data (newer)");
-    } else {
-      personData = familysearchData;
-      dataSource = "familysearch";
-      console.log("🎯 Using FamilySearch data (newer)");
-    }
-  } else if (ancestryData) {
+  // ALWAYS prefer clipboard data if it exists (since user just extracted it)
+  if (ancestryData) {
     personData = ancestryData;
-    dataSource = "ancestry/findagrave";
-    console.log("🎯 Using Ancestry/FindAGrave data (only source)");
+    dataSource = "ancestry/findagrave (clipboard)";
+    console.log("🎯 Using Ancestry/FindAGrave clipboard data");
+    console.log("📊 Clipboard timestamp:", ancestryData.timestamp);
+    if (familysearchData) {
+      console.log("📊 LocalStorage timestamp:", familysearchData.timestamp);
+      console.log("📊 Ignoring older localStorage data");
+    }
   } else if (familysearchData) {
     personData = familysearchData;
-    dataSource = "familysearch";
-    console.log("🎯 Using FamilySearch data (only source)");
+    dataSource = "familysearch (localStorage)";
+    console.log("🎯 Using FamilySearch localStorage data (no clipboard data found)");
+    console.log("📊 LocalStorage timestamp:", familysearchData.timestamp);
   }
   
   console.log("🎯 Final data source:", dataSource);
   console.log("🎯 Final person data:", personData);
-  
+
   if (!personData.firstName && !personData.fullName) {
     showNotification("⚠️ No person data found in clipboard or storage");
     return;
