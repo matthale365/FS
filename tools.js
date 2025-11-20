@@ -593,10 +593,19 @@ async function tool4() {
       return await extractAncestryData();
     } else if (currentUrl.includes("findagrave.com/memorial/")) {
       return await extractFindAGraveData();
-    } else if (currentUrl.includes("familysearch.org/en/tree/")) {
-      await autoClickAddPerson();
-      await fillPersonForm();
-      return "Form filled";
+   } else if (currentUrl.includes("familysearch.org/en/tree/")) {
+  // Check if form is already open
+  const formAlreadyOpen = document.querySelector('[role="dialog"] input[data-testid="first-name"]');
+  
+  if (!formAlreadyOpen) {
+    await autoClickAddPerson();
+  } else {
+    console.log("✅ Form already open, skipping auto-click");
+  }
+  
+  await fillPersonForm();
+  return "Form filled";
+
     } else {
       console.log("This script works on FamilySearch, Ancestry, or FindAGrave pages.");
       return "Invalid page";
