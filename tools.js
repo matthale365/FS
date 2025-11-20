@@ -920,9 +920,206 @@ async function autoClickAddPerson() {
 // ========================================
 // Fill the add person form
 // ========================================
-// ========================================
-// Fill the add person form
-// ========================================
-{"source":"ancestry","fullName":"Dorothy Schuman","lastName":"Schuman","firstName":"Dorothy","middleName":"","birthDate":"abt 1910","birthplace":"Illinois","deathDate":"2002","timestamp":1763615466244}
+async function fillPersonForm() {
+  console.log("📝 Filling person form...");
+  
+  let clipboardText = "";
+  let ancestryData = null;
+  let familysearchData = null;
+  
+  // Try to read clipboard with detailed logging
+  try {
+    clipboardText = await navigator.clipboard.readText();
+    console.log("✅ Successfully read clipboard");
+    console.log("📋 Raw clipboard length:", clipboardText.length);
+    console.log("📋 First 200 chars:", clipboardText.substring(0, 200));
+    
+    if (clipboardText.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(clipboardText);
+        console.log("✅ Successfully parsed JSON");
+        console.log("Source:", parsed.source);
+        
+        if (parsed.source === "ancestry" || parsed.source === "findagrave") {
+          ancestryData = parsed;
+          console.log("✅ Found clipboard data (timestamp:", ancestryData.timestamp, ")");
+        }
+      } catch (parseError) {
+        console.warn("⚠️ Could not parse clipboard JSON:", parseError);
+      }
+    }
+  } catch (e) {
+    console.warn("❌ Could not read clipboard:", e);
+  }
+  
+  // Check localStorage
+  try {
+    const stored = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
+    if (stored.firstName || stored.fullName) {
+      familysearchData = stored;
+      console.log("✅ Found FamilySearch data in localStorage");
+    }
+  } catch (e) {
+    console.warn("No localStorage data found");
+  }
+  
+  // Decision logic - ALWAYS prefer clipboard
+  let personData = {};
+  let dataSource = "none";
+  
+  if (ancestryData) {
+    personData = ancestryData;
+    dataSource = "clipboard (ancestry/findagrave)";
+    console.log("🎯 USING: Clipboard data");
+  } else if (familysearchData) {
+    personData = familysearchData;
+    dataSource = "localStorage (familysearch)";
+    console.log("🎯 USING: LocalStorage data (no clipboard)");
+  } else {
+    showNotification("❌ No data found!");
+    return;
+  }
+  
+  console.log("🎯 Final data source:", dataSource);
+  console.log("🎯 Final person data:", personData);
+  
+  if (!personData.firstName && !personData.fullName) {
+    showNotification("⚠️ personData is empty!");
+    return;
+  }
+  
+  // Prepare name data
+  if (!personData.firstName || !personData.lastName) {
+    const nameParts = (personData.fullName || "").trim().split(/\s+/);
+    personData.lastName = nameParts.length > 1 ? nameParts.pop() : "";
+    personData.firstName = nameParts.join(" ");
+  }
+  
+  const firstNameWithMiddle = (personData.firstName || "") + 
+                              (personData.middleName ? " " + personData.middleName : "");
+
+  const setInput = (element, value) => {
+    if (!element || !value) return;
+    
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype, 
+      'value'
+    ).set;
+    
+    element.focus();
+    nativeInputValueSetter.call(element, value);
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const setDate = (fieldName, value) => new Promise(resolve => {
+    if (!value) {
+      resolve();
+      return;
+    }
+    
+    let attempts = 0;
+    const maxAttempts = 30;
+    
+    const checkForField = setInterval(() => {
+      const input = document.querySelector(`input[name='${fieldName}']`);
+      
+      if (input) {
+        clearInterval(checkForField);
+        
+        input.scrollIntoView({ block: "center" });
+        input.focus();
+        setInput(input, value);
+        
+        input.value += "a";
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        
+        let autocompleteAttempts = 0;
+        const checkForAutocomplete = setInterval(() => {
+          const options = Array.from(document.querySelectorAll(
+            '[role="option"], [data-testid*="standardized-date"]'
+          ));
+          
+          if (options.length > 1) {
+            options[1].click();
+            clearInterval(checkForAutocomplete);
+            resolve();
+          } else if (options[0] && autocompleteAttempts > 3) {
+            options[0].click();
+            clearInterval(checkForAutocomplete);
+            resolve();
+          }
+          
+          if (++autocompleteAttempts > 15) {
+            clearInterval(checkForAutocomplete);
+            resolve();
+          }
+        }, 100);
+      } else if (attempts++ > maxAttempts) {
+        clearInterval(checkForField);
+        console.warn(`Field ${fieldName} not found`);
+        resolve();
+      }
+    }, 100);
+  });
+
+  // Wait for form
+  await new Promise(resolve => {
+    let attempts = 0;
+    const checkForm = setInterval(() => {
+      const firstName = document.querySelector("input[data-testid='first-name']");
+      if (firstName || attempts++ > 30) {
+        clearInterval(checkForm);
+        resolve();
+      }
+    }, 100);
+  });
+
+  // Fill basic fields
+  setInput(document.querySelector("input[data-testid='first-name']"), firstNameWithMiddle);
+  setInput(document.querySelector("input[data-testid='last-name']"), personData.lastName || "");
+  
+  // Set sex
+  if (personData.sex) {
+    const sex = personData.sex.toLowerCase() === "male" ? "male" : "female";
+    document.querySelectorAll(".radioCss_rw3ic9v").forEach(radio => {
+      if (radio.value.toLowerCase() === sex) {
+        radio.click();
+      }
+    });
+  }
+  
+  // Set deceased
+  document.querySelectorAll(".radioCss_rw3ic9v").forEach(radio => {
+    if (radio.value === "deceased") {
+      radio.click();
+    }
+  });
+  
+  // Fill dates with timeout protection
+  try {
+    await Promise.race([
+      setDate("birthDate", personData.birthDate),
+      new Promise(resolve => setTimeout(resolve, 3000))
+    ]);
+    
+    await Promise.race([
+      setDate("deathDate", personData.deathDate),
+      new Promise(resolve => setTimeout(resolve, 3000))
+    ]);
+  } catch (e) {
+    console.warn("Date filling timed out:", e);
+  }
+  
+  // Fill places
+  setInput(document.querySelector("input[name='birthPlace']"), personData.birthplace || "");
+  setInput(document.querySelector("input[name='deathPlace']"), personData.deathplace || "");
+  
+  console.log("✅ Form filled successfully!");
+  showNotification(`✅ Filled from: ${dataSource}`);
+}
 
 }
