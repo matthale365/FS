@@ -579,9 +579,11 @@ function tool3() {
 })();
 }
 
-function tool4() {
-    // FamilySearch Add New Person Tool
+// FamilySearch Add New Person Tool
 // Extracts person data from records and auto-fills the add person form
+
+// Main function that gets called
+async function tool4() {
   try {
     const currentUrl = location.href;
     
@@ -604,7 +606,6 @@ function tool4() {
     console.error("Error in Add New Person script:", error);
     return "Error: " + error.message;
   }
-    }
 }
 
 // ========================================
@@ -1083,5 +1084,5 @@ async function fillPersonForm() {
   setInput(document.querySelector("input[name='deathPlace']"), personData.deathplace || "");
   
   console.log("✅ Form filled successfully!");
-
 }
+
