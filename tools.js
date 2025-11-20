@@ -911,6 +911,9 @@ async function autoClickAddPerson() {
 // ========================================
 // Fill the add person form
 // ========================================
+// ========================================
+// Fill the add person form
+// ========================================
 async function fillPersonForm() {
   console.log("📝 Filling person form...");
   
@@ -961,8 +964,8 @@ async function fillPersonForm() {
     
     if (ancestryTime > fsTime) {
       personData = ancestryData;
-      dataSource = "ancestry";
-      console.log("🎯 Using Ancestry data (newer)");
+      dataSource = "ancestry/findagrave";
+      console.log("🎯 Using Ancestry/FindAGrave data (newer)");
     } else {
       personData = familysearchData;
       dataSource = "familysearch";
@@ -970,8 +973,8 @@ async function fillPersonForm() {
     }
   } else if (ancestryData) {
     personData = ancestryData;
-    dataSource = "ancestry";
-    console.log("🎯 Using Ancestry data (only source)");
+    dataSource = "ancestry/findagrave";
+    console.log("🎯 Using Ancestry/FindAGrave data (only source)");
   } else if (familysearchData) {
     personData = familysearchData;
     dataSource = "familysearch";
@@ -982,7 +985,7 @@ async function fillPersonForm() {
   console.log("🎯 Final person data:", personData);
   
   if (!personData.firstName && !personData.fullName) {
-    alert("⚠️ No person data found.\n\nPlease run this on a record page or Ancestry page first.");
+    showNotification("⚠️ No person data found in clipboard or storage");
     return;
   }
   
@@ -996,7 +999,7 @@ async function fillPersonForm() {
                               (personData.middleName ? " " + personData.middleName : "");
 
   const setInput = (element, value) => {
-    if (!element) return;
+    if (!element || !value) return;
     
     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
       HTMLInputElement.prototype, 
@@ -1015,6 +1018,9 @@ async function fillPersonForm() {
       return;
     }
     
+    let attempts = 0;
+    const maxAttempts = 30; // Reduced from 100 to avoid timeout
+    
     const checkForField = setInterval(() => {
       const input = document.querySelector(`input[name='${fieldName}']`);
       
@@ -1025,6 +1031,7 @@ async function fillPersonForm() {
         input.focus();
         setInput(input, value);
         
+        // Trigger autocomplete
         input.value += "a";
         input.dispatchEvent(new Event('input', { bubbles: true }));
         
@@ -1047,18 +1054,36 @@ async function fillPersonForm() {
             resolve();
           }
           
-          if (++autocompleteAttempts > 20) {
+          if (++autocompleteAttempts > 15) { // Reduced from 20
             clearInterval(checkForAutocomplete);
             resolve();
           }
         }, 100);
+      } else if (attempts++ > maxAttempts) {
+        clearInterval(checkForField);
+        console.warn(`Field ${fieldName} not found after ${maxAttempts} attempts`);
+        resolve();
       }
     }, 100);
   });
 
+  // Wait for form to be ready
+  await new Promise(resolve => {
+    let attempts = 0;
+    const checkForm = setInterval(() => {
+      const firstName = document.querySelector("input[data-testid='first-name']");
+      if (firstName || attempts++ > 30) {
+        clearInterval(checkForm);
+        resolve();
+      }
+    }, 100);
+  });
+
+  // Fill basic fields
   setInput(document.querySelector("input[data-testid='first-name']"), firstNameWithMiddle);
   setInput(document.querySelector("input[data-testid='last-name']"), personData.lastName || "");
   
+  // Set sex
   if (personData.sex) {
     const sex = personData.sex.toLowerCase() === "male" ? "male" : "female";
     document.querySelectorAll(".radioCss_rw3ic9v").forEach(radio => {
@@ -1068,20 +1093,34 @@ async function fillPersonForm() {
     });
   }
   
+  // Set deceased
   document.querySelectorAll(".radioCss_rw3ic9v").forEach(radio => {
     if (radio.value === "deceased") {
       radio.click();
     }
   });
   
-  // Fill dates first (both auto-standardize)
-  await setDate("birthDate", personData.birthDate);
-  await setDate("deathDate", personData.deathDate);
+  // Fill dates with timeout protection
+  try {
+    await Promise.race([
+      setDate("birthDate", personData.birthDate),
+      new Promise(resolve => setTimeout(resolve, 3000)) // 3 second timeout
+    ]);
+    
+    await Promise.race([
+      setDate("deathDate", personData.deathDate),
+      new Promise(resolve => setTimeout(resolve, 3000))
+    ]);
+  } catch (e) {
+    console.warn("Date filling timed out:", e);
+  }
   
-  // Then fill places (user manually standardizes these)
+  // Fill places (no waiting for autocomplete)
   setInput(document.querySelector("input[name='birthPlace']"), personData.birthplace || "");
   setInput(document.querySelector("input[name='deathPlace']"), personData.deathplace || "");
   
   console.log("✅ Form filled successfully!");
+  showNotification(`✅ Form filled from ${dataSource} data`);
 }
+
 }
