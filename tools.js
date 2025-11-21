@@ -615,7 +615,6 @@ async function tool4() {
     console.error("Error in Add New Person script:", error);
     return "Error: " + error.message;
   }
-}
 // ========================================
 // HELPER: Show auto-dismiss notification
 // ========================================
