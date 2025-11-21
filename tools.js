@@ -1120,32 +1120,44 @@ async function fillPersonForm() {
   let ancestryData = null;
   let familysearchData = null;
   
-  // Try to read clipboard with detailed logging
+  // Try to read clipboard with prompt as backup (same pattern as tool3)
   try {
     clipboardText = await navigator.clipboard.readText();
     console.log("✅ Successfully read clipboard");
-    console.log("📋 Raw clipboard length:", clipboardText.length);
-    console.log("📋 First 200 chars:", clipboardText.substring(0, 200));
     
-    if (clipboardText.startsWith("{")) {
-      try {
-        const parsed = JSON.parse(clipboardText);
-        console.log("✅ Successfully parsed JSON");
-        console.log("Source:", parsed.source);
-        
-        if (parsed.source === "ancestry" || parsed.source === "findagrave") {
-          ancestryData = parsed;
-          console.log("✅ Found clipboard data (timestamp:", ancestryData.timestamp, ")");
-        }
-      } catch (parseError) {
-        console.warn("⚠️ Could not parse clipboard JSON:", parseError);
-      }
+    if (!clipboardText || clipboardText.trim() === "" || !clipboardText.startsWith("{")) {
+      throw new Error("Empty or invalid clipboard");
     }
-  } catch (e) {
-    console.warn("❌ Could not read clipboard:", e);
+  } catch (error) {
+    // If clipboard fails, prompt user to paste
+    console.warn("⚠️ Clipboard read failed, prompting user");
+    clipboardText = prompt("Clipboard read failed. Please paste the person data (JSON) here:");
+    
+    if (!clipboardText || clipboardText.trim() === "") {
+      showNotification("❌ No data provided!");
+      return;
+    }
   }
   
-  // Check localStorage
+  // Parse the clipboard/pasted data
+  if (clipboardText.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(clipboardText);
+      console.log("✅ Successfully parsed JSON");
+      console.log("Source:", parsed.source);
+      
+      if (parsed.source === "ancestry" || parsed.source === "findagrave") {
+        ancestryData = parsed;
+        console.log("✅ Found clipboard data (timestamp:", ancestryData.timestamp, ")");
+      }
+    } catch (parseError) {
+      console.warn("⚠️ Could not parse JSON:", parseError);
+      showNotification("❌ Invalid JSON data!");
+      return;
+    }
+  }
+  
+  // Check localStorage as fallback
   try {
     const stored = JSON.parse(localStorage.getItem("fs_person_data") || "{}");
     if (stored.firstName || stored.fullName) {
@@ -1156,7 +1168,7 @@ async function fillPersonForm() {
     console.warn("No localStorage data found");
   }
   
-  // Decision logic - ALWAYS prefer clipboard
+  // Decision logic - ALWAYS prefer clipboard/pasted data
   let personData = {};
   let dataSource = "none";
   
@@ -1169,7 +1181,7 @@ async function fillPersonForm() {
     dataSource = "localStorage (familysearch)";
     console.log("🎯 USING: LocalStorage data (no clipboard)");
   } else {
-    showNotification("❌ No data found!");
+    showNotification("❌ No valid data found!");
     return;
   }
   
