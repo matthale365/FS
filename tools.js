@@ -67,7 +67,7 @@ function tool2() {
     
     if (currentUrl.includes("familysearch.org/ark:/")) {
       await extractPersonData();
-    } else if (currentUrl.includes("ancestry.com/family-tree/person/tree")) {
+    } else if (currentUrl.includes("ancestry.com/family-tree/person/tree")||currentUrl.includes("ancestryinstitution.com/family-tree/person/tree") {
       await extractAncestryData();
     } else if (currentUrl.includes("findagrave.com/memorial/")) {
       await extractFindAGraveData();
