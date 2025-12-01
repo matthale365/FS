@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -209,34 +209,62 @@
       padding-top: 2px;
     }
     
-     .dev-tool {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        background: #48bb78;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        text-decoration: none; /* Remove blue underline */
-        font-size: 0.9em;
-        font-weight: 600;
-        box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
-        transition: all 0.3s ease;
-        cursor: move;
-        z-index: 999;
-        opacity: 0.7;
-        display: inline-block; /* ADD THIS - makes it behave like a button */
-      }
+    .dev-tool {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #48bb78;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9em;
+      font-weight: 600;
+      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+      cursor: move;
+      z-index: 999;
+      opacity: 0.7;
+      display: inline-block;
+    }
 
-      .dev-tool:hover {
-        opacity: 1;
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-      }
+    .dev-tool:hover {
+      opacity: 1;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    }
 
-      .dev-tool:visited {
-        color: white; /* ADD THIS - prevents purple visited link color */
-      }
+    .dev-tool:visited {
+      color: white;
+    }
+
+    .download-extension {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #48bb78;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9em;
+      font-weight: 600;
+      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+      z-index: 999;
+      opacity: 0.7;
+      display: inline-block;
+    }
+
+    .download-extension:hover {
+      opacity: 1;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .download-extension:visited {
+      color: white;
+    }
 
     @media (max-width: 600px) {
       .container {
@@ -327,9 +355,12 @@
     </div>
   </div>
   
-    <a class="dev-tool" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool4();});})();">
+  <a class="dev-tool" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool4();});})();">
     <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool4();});})();', 'Test'); return false;" title="Copy to clipboard">🛠️</button>
-    </a>
+  </a>
+  
+  <!-- Download Extension Button -->
+  <a class="download-extension" href="https://matthale365.github.io/FS/extension.zip" download>Download Extension</a>
   
 </body>
 </html>
