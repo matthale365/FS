@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 340px;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      padding: 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    
+    .content {
+      background: #f9fafb;
+      padding: 16px;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #e5e7eb;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #059669;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .section-icon {
+      font-size: 16px;
+    }
+    
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .toggle-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    
+    .toggle-label {
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+    
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #d1d5db;
+      transition: 0.3s;
+      border-radius: 26px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    input:checked + .slider {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .btn:last-child {
+      margin-bottom: 0;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #059669;
+      border: 2px solid #d1fae5;
+    }
+    
+    .btn-secondary:hover {
+      background: #f0fdf4;
+      border-color: #10b981;
+    }
+    
+    .status {
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+      margin-top: 12px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      font-weight: 500;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>FamilySearch Helper</h2>
+    <div class="subtitle">Making genealogy research easier</div>
+  </div>
+  
+  <div class="content">
+    <div class="section">
+      <div class="section-title">
+        <span class="section-icon">⚡</span>
+        Auto Features
+      </div>
+      
+      <div class="toggle-row">
+        <span class="toggle-label">Auto Filter</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoFilter">
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <div class="toggle-row">
+        <span class="toggle-label">Auto Extract Data</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoExtract">
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <div class="toggle-row">
+        <span class="toggle-label">Auto Fill Forms</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoFill">
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <div class="toggle-row">
+        <span class="toggle-label">Auto NUMIDENT Workflow</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoWorkflow">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">
+        <span class="section-icon">🔧</span>
+        Manual Actions
+      </div>
+	  <button class="btn btn-secondary" id="autoFind">🔍 Auto Find Person</button>
+      <button class="btn btn-primary" id="runFilter">Run Filter Now</button>
+      <button class="btn btn-secondary" id="runExtract">Extract Data Now</button>
+      <button class="btn btn-secondary" id="runFill">Fill Form Now</button>
+    </div>
+    
+    <div class="status" id="status">✓ Ready</div>
+  </div>
+  
+  <div class="footer">
+    Made with ❤️ for genealogy researchers
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
