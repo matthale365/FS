@@ -3,363 +3,285 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FamilySearch Tools</title>
+  <title>FamilySearch Indexing Helper</title>
+  <meta name="description" content="A free Chrome extension that takes the repetitive clicks out of indexing on FamilySearch.">
+  <link rel="icon" href="Icon.png">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --green: #24983d;
+      --green-light: #48bb78;
+      --green-tint: #eaf7ee;
+      --ink: #1f2a24;
+      --muted: #5b6b62;
+      --line: #dfe8e2;
+      --card: #ffffff;
+      --bg: #f6faf7;
     }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #48bb78 0%, #24983d 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
     }
 
-    .container {
-      background: white;
+    /* ---------- Hero ---------- */
+    .hero {
+      background: linear-gradient(135deg, var(--green-light) 0%, var(--green) 100%);
+      color: #fff;
+      text-align: center;
+      padding: 64px 20px 88px;
+    }
+
+    .hero img {
+      width: 84px;
+      height: 84px;
       border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      width: 100%;
-      padding: 40px;
-      animation: fadeIn 0.5s ease-in;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 22px;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .hero h1 {
+      font-size: clamp(1.9rem, 5vw, 2.6rem);
+      line-height: 1.2;
+      margin-bottom: 12px;
     }
 
-    h1 {
-      color: #2d3748;
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      text-align: center;
-      background: linear-gradient(135deg, #24983d 0%, #24983d 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero p {
+      max-width: 560px;
+      margin: 0 auto 30px;
+      font-size: 1.08rem;
+      opacity: 0.95;
     }
 
-    .subtitle {
-      color: #718096;
-      text-align: center;
-      margin-bottom: 40px;
-      font-size: 0.95em;
-    }
-
-    .tools-grid {
-      display: grid;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .tool-card {
-      background: linear-gradient(135deg, #48bb78 0%, #24983d 100%);
-      border-radius: 12px;
-      padding: 25px;
-      text-decoration: none;
-      color: white;
-      display: flex;
+    .install {
+      display: inline-flex;
       align-items: center;
-      gap: 20px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-      cursor: pointer;
-    }
-
-    .tool-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-    }
-
-    .copy-button {
-      background: rgba(255, 255, 255, 0.3);
-      border: none;
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-    }
-
-    .copy-button:hover {
-      background: rgba(255, 255, 255, 0.5);
-      transform: scale(1.1);
-    }
-
-    .copy-button:active {
-      transform: scale(0.95);
-    }
-
-    .copy-feedback {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #48bb78;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      animation: slideIn 0.3s ease-out;
-      z-index: 1000;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .tool-icon {
-      width: 50px;
-      height: 50px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-    }
-
-    .tool-info {
-      flex: 1;
-    }
-
-    .tool-name {
-      font-size: 1.3em;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .tool-description {
-      font-size: 0.9em;
-      opacity: 0.9;
-    }
-
-    .instructions {
-      background: #48bb7838;
-      border-left: 4px solid #24983d;
-      padding: 20px;
-      border-radius: 8px;
-      margin-top: 30px;
-    }
-
-    .instructions h3 {
-      color: #2d3748;
-      margin-bottom: 10px;
-      font-size: 1.1em;
-    }
-
-    .instructions p {
-      color: #4a5568;
-      line-height: 1.6;
-      font-size: 0.9em;
-    }
-
-    .step {
-      display: flex;
-      align-items: start;
       gap: 10px;
-      margin-top: 12px;
+      background: #fff;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 15px 30px;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .step-number {
-      background: #48bb78;
-      color: white;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
+    .install:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    .install svg { width: 22px; height: 22px; }
+
+    .hero small {
+      display: block;
+      margin-top: 14px;
+      font-size: 0.88rem;
+      opacity: 0.85;
+    }
+
+    /* ---------- Content ---------- */
+    main {
+      max-width: 860px;
+      margin: -48px auto 0;
+      padding: 0 20px 40px;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(31, 42, 36, 0.08);
+      padding: 36px;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      margin-bottom: 6px;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin-bottom: 26px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .feature {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .feature .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: var(--green-tint);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8em;
-      font-weight: bold;
+      font-size: 21px;
+      margin-bottom: 12px;
+    }
+
+    .feature h3 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .section { margin-top: 40px; }
+
+    ol.steps {
+      list-style: none;
+      counter-reset: step;
+      display: grid;
+      gap: 12px;
+    }
+
+    ol.steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      color: var(--muted);
+    }
+
+    ol.steps li::before {
+      content: counter(step);
       flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--green-light);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .step-text {
-      color: #4a5568;
-      font-size: 0.9em;
-      padding-top: 2px;
+    ol.steps strong { color: var(--ink); }
+
+    .note {
+      margin-top: 40px;
+      background: var(--green-tint);
+      border-left: 4px solid var(--green);
+      border-radius: 10px;
+      padding: 18px 20px;
+      font-size: 0.94rem;
+      color: var(--muted);
     }
-    
-    .dev-tool {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: #24983d;
-      color: white;
-      padding: 12px 12px;
-      border-radius: 8px;
+
+    .note + .note { margin-top: 14px; }
+
+    .note strong { color: var(--ink); }
+
+    /* ---------- Footer ---------- */
+    footer {
+      text-align: center;
+      padding: 10px 20px 40px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--muted);
       text-decoration: none;
-      font-size: 0.9em;
-      font-weight: 600;
-      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
-      transition: all 0.3s ease;
-      cursor: move;
-      z-index: 999;
-      opacity: 0.7;
-      display: inline-block;
+      border-bottom: 1px dotted currentColor;
     }
 
-    .dev-tool:hover {
-      opacity: 1;
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    }
-
-    .dev-tool:visited {
-      color: white;
-    }
-
-    .download-extension {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #48bb78;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 0.9em;
-      font-weight: 600;
-      box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
-      transition: all 0.3s ease;
-      z-index: 999;
-      opacity: 0.7;
-      display: inline-block;
-    }
-
-    .download-extension:hover {
-      opacity: 1;
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    }
-
-    .download-extension:visited {
-      color: white;
-    }
+    footer a:hover { color: var(--green); }
 
     @media (max-width: 600px) {
-      .container {
-        padding: 30px 20px;
-      }
-
-      h1 {
-        font-size: 2em;
-      }
-
-      .tool-card {
-        padding: 20px;
-      }
+      .panel { padding: 26px 20px; }
+      .hero { padding: 48px 16px 80px; }
     }
   </style>
-  <script>
-    function copyToClipboard(text, toolName) {
-      navigator.clipboard.writeText(text).then(() => {
-        const feedback = document.createElement('div');
-        feedback.className = 'copy-feedback';
-        feedback.textContent = `✓ ${toolName} copied to clipboard!`;
-        document.body.appendChild(feedback);
-        
-        setTimeout(() => {
-          feedback.remove();
-        }, 2000);
-      }).catch(err => {
-        alert('Failed to copy. Please try right-click and copy manually.');
-      });
-    }
-  </script>
 </head>
 <body>
-  <div class="container">
-    <h1>🌳 FamilySearch Tools</h1>
-    <p class="subtitle">Powerful bookmarklet tools to enhance your FamilySearch experience</p>
-    
-    <div class="tools-grid">
-      <!-- Tool 1 -->
-      <a class="tool-card" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool1();});})();">
-        <div class="tool-icon">🔍</div>
-        <div class="tool-info">
-          <div class="tool-name">Filter</div>
-          <div class="tool-description">Quickly filter and search through records</div>
-        </div>
-        <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool1();});})();', 'Filter'); return false;" title="Copy to clipboard">📋</button>
-      </a>
 
-      <!-- Tool 2 -->
-      <a class="tool-card" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool2();});})();">
-        <div class="tool-icon">➕</div>
-        <div class="tool-info">
-          <div class="tool-name">Add New Person</div>
-          <div class="tool-description">Streamline adding new individuals</div>
-        </div>
-        <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool2();});})();', 'Add New Person'); return false;" title="Copy to clipboard">📋</button>
-      </a>
+  <header class="hero">
+    <img src="Icon.png" alt="">
+    <h1>FamilySearch Indexing Helper</h1>
+    <p>A free Chrome extension that takes the repetitive clicks out of attaching records on FamilySearch. It filters your search results, remembers the people you look up, and fills in forms for you.</p>
+    <a class="install" href="https://chromewebstore.google.com/detail/pnihgpmdnkaodbphjhmgckkgdibibfnh" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Add to Chrome
+    </a>
+    <small>Free · Opens the Chrome Web Store</small>
+  </header>
 
-      <!-- Tool 3 -->
-      <a class="tool-card" href="javascript:(()=>{fetch('https://matthale365.github.io/FS/tools.js').then(r=>r.text()).then(code=>{eval(code); tool3();});})();">
-        <div class="tool-icon">🎯</div>
-        <div class="tool-info">
-          <div class="tool-name">Auto Find</div>
-          <div class="tool-description">Jump directly to the person you're editing</div>
+  <main>
+    <div class="panel">
+      <h2>What it does</h2>
+      <p class="lead">Once installed, it works on its own whenever you're on FamilySearch. Click the extension icon to turn features on or off.</p>
+
+      <div class="features">
+        <div class="feature">
+          <div class="icon">🔍</div>
+          <h3>Auto Filter</h3>
+          <p>Hides search results that are already attached to the tree, so only records that still need work are left. A bar above the results shows how many were hidden, with "Show all" to bring them back. Records linked to two different tree people stay visible with a warning, since that usually means a duplicate.</p>
         </div>
-        <button class="copy-button" onclick="event.preventDefault(); copyToClipboard('javascript:(()=>{fetch(\'https://matthale365.github.io/FS/tools.js\').then(r=>r.text()).then(code=>{eval(code); tool3();});})();', 'Auto Find'); return false;" title="Copy to clipboard">📋</button>
-      </a>
+
+        <div class="feature">
+          <div class="icon">💾</div>
+          <h3>Saves people automatically</h3>
+          <p>When you open a record on FamilySearch, a Find a Grave memorial or an Ancestry page, the person's name, sex, birth and death details are saved. The extension keeps your last 4 people, and you can also save a page by hand from the extension menu.</p>
+        </div>
+
+        <div class="feature">
+          <div class="icon">✍️</div>
+          <h3>Fill from saved</h3>
+          <p>A "Fill from saved" button appears on the Add Person form and the Alternate Name popup. Pick a saved person and the form fills in, with dates matched to FamilySearch's standard format. With Auto Fill on, it fills in the most recent person as soon as the form opens.</p>
+        </div>
+
+        <div class="feature">
+          <div class="icon">➕</div>
+          <h3>Add Unconnected Person, up top</h3>
+          <p>Adds a large "Add Unconnected Person" button to the top of the recents menu, so you don't have to scroll to the bottom to find it.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Getting started</h2>
+        <p class="lead">It takes about a minute.</p>
+        <ol class="steps">
+          <li><span><strong>Click "Add to Chrome"</strong> above, then "Add to Chrome" again on the Web Store page.</span></li>
+          <li><span><strong>Pin it</strong> by clicking the puzzle piece in Chrome's toolbar and the pin next to FamilySearch Indexing Helper.</span></li>
+          <li><span><strong>Open FamilySearch</strong> and work as usual. The helpers show up on their own.</span></li>
+        </ol>
+      </div>
+
+      <div class="note">
+        <strong>Used the old bookmark tools?</strong> The extension replaces the Filter, Add New Person and Auto Find bookmarks, so you can delete them once it's installed.
+      </div>
+
+      <div class="note">
+        <strong>Privacy:</strong> Saved people stay in your browser and are cleared when Chrome closes, so the next person on a shared computer starts fresh. Nothing is sent anywhere else.
+      </div>
     </div>
+  </main>
 
-    <div class="instructions">
-      <h3>📌 How to Install</h3>
-      <div class="step">
-        <div class="step-number">1</div>
-        <div class="step-text">Click the 📋 button to copy the JavaScript code</div>
-      </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <div class="step-text">Create a new bookmark and paste the copied text in the URL</div>
-      </div>
-      <div class="step">
-        <div class="step-number">3</div>
-        <div class="step-text">Name it according to the tool (e.g., "Filter")</div>
-      </div>
-      <div class="step">
-        <div class="step-number">4</div>
-        <div class="step-text">Visit FamilySearch and click the bookmark to activate the tool</div>
-      </div>
-    </div>
-  </div>
+  <footer>
+    Made for FamilySearch volunteers · <a href="https://github.com/matthale365/FS" target="_blank" rel="noopener">View or edit on GitHub</a>
+  </footer>
 
-  <!-- Dev-Tool Page -->
-  <a class="dev-tool" href="https://github.com/matthale365/FS" target="_blank">🛠️</a>
-  
-  <!-- Download Extension Button -->
-  <a class="download-extension" href="https://chrome.google.com/webstore/detail/pnihgpmdnkaodbphjhmgckkgdibibfnh" target="_blank">Add Extension</a>
-  
 </body>
 </html>
